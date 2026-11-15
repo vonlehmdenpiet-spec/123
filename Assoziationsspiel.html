@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Assoziationsspiel</title>
+<style>
+:root{--bg:#f6f4ff;--card:#fff;--tx:#1d1b2e;--mu:#6b6885;--ac:#6c4cf5;--ok:#17a34a;--bad:#e11d48;--bd:#e4e0f5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14121f;--card:#1e1b30;--tx:#f1effc;--mu:#a09cc0;--ac:#8b72ff;--ok:#34d399;--bad:#fb7185;--bd:#322e4d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14121f;--card:#1e1b30;--tx:#f1effc;--mu:#a09cc0;--ac:#8b72ff;--ok:#34d399;--bad:#fb7185;--bd:#322e4d;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:8px 0 4px;text-align:center}
+.sub{color:var(--mu);text-align:center;margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;margin-bottom:14px}
+label{font-size:13px;color:var(--mu);display:block;margin-bottom:6px}
+input{width:100%;font:inherit;padding:12px 14px;border-radius:12px;border:1.5px solid var(--bd);background:var(--bg);color:var(--tx)}
+input:focus{outline:none;border-color:var(--ac)}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:13px 16px;background:var(--ac);color:#fff;cursor:pointer;width:100%}
+button.sec{background:transparent;color:var(--ac);border:1.5px solid var(--ac)}
+button.ok{background:var(--ok)}button.bad{background:var(--bad)}
+button:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.gap{height:12px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--mu);margin-bottom:12px}
+.code{font-weight:800;letter-spacing:2px;color:var(--tx);cursor:pointer}
+.streak{text-align:center;font-size:15px;color:var(--mu)}
+.streak b{font-size:34px;color:var(--tx);display:block;line-height:1.1}
+.cat{text-align:center;font-size:13px;color:var(--mu);text-transform:uppercase;letter-spacing:1px}
+.word{text-align:center;font-size:38px;font-weight:800;margin:6px 0 4px;overflow-wrap:anywhere}
+.pl{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;background:var(--bg);margin-top:8px;gap:10px}
+.pl span:last-child{font-weight:700;overflow-wrap:anywhere;text-align:right}
+.st{color:var(--mu);font-weight:500!important}
+.res{text-align:center;font-weight:800;font-size:22px;padding:12px;border-radius:14px;margin-top:12px}
+.res.right{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.res.wrong{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.hint{font-size:13px;color:var(--mu);text-align:center;margin-top:10px}
+.err{color:var(--bad);text-align:center;font-size:14px;margin-top:10px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const CATS=["Sportart","Küchenutensil","Schulnote","Schulfach","Obstsorte","Gemüse","Haustier","Automarke","Farbe","Land in Europa","Hauptstadt","Musikinstrument","Beruf","Getränk","Süßigkeit","Eissorte","Pizzabelag","Kleidungsstück","Körperteil","Möbelstück","Werkzeug","Gewürz","Tier im Zoo","Tier auf dem Bauernhof","Streamingdienst","Videospiel","Social-Media-App","Marvel-Held","Superkraft","Wochentag","Monat","Jahreszeit","Vorname (Junge)","Vorname (Mädchen)","Fußballverein","Fernsehsendung","Fastfood-Kette","Urlaubsland","Zimmer im Haus","Bestandteil eines Burgers","Brotbelag","Nudelsorte","Frühstück","Edelstein","Waffe im Mittelalter","Märchenfigur","Fortbewegungsmittel","Wetterphänomen","Elektrogerät","Schimpfwort-Alternative","Kuchensorte","Käsesorte","Wurstsorte","Getränk bei der Party","Cocktail","Biermarke","Kaffeesorte","Teesorte","Soße","Beilage","Nachtisch","Nuss","Beere","Blume","Baum","Insekt","Meerestier","Vogel","Raubtier","Dinosaurier","Planet","Sternzeichen","Kontinent","Fluss","Stadt in Deutschland","Bundesland","Schimpftier","Smartphone-Marke","Sneaker-Marke","Modemarke","Supermarkt","Online-Shop","YouTuber","Streamer","Rapper","Band","Sänger oder Sängerin","Schauspieler","Disney-Film","Horrorfilm","Comicfigur","Brettspiel","Kartenspiel","Minecraft-Block","Mario-Kart-Strecke","Pokémon","Hobby","Olympische Disziplin","Ballsportart","Wintersport","Kampfsportart","Yoga-Position","Gegenstand im Badezimmer","Gegenstand im Schlafzimmer","Gegenstand im Rucksack","Gegenstand im Klassenzimmer","Gegenstand im Auto","Gegenstand im Kühlschrank","Gegenstand am Strand","Büromaterial","Putzmittel","Gartengerät","Medikament oder Hausmittel","Krankheit","Gefühl","Angst oder Phobie","Eigenschaft eines Menschen","Laster","Feiertag","Geschenk zum Geburtstag","Ausrede fürs Zuspätkommen","Ort für ein Date","Ort zum Urlaubmachen","Gebäude","Geschäft in der Innenstadt","Ort in der Schule","Beruf mit Uniform","Berühmter Politiker","Erfinder","Zahl zwischen 1 und 10","Geometrische Form","Material","Metall","Musikrichtung","Tanzart","Programmiersprache","Sprache","Spielzeug","Zirkusact","Ding, das man im Winter braucht","Ding, das man im Sommer braucht","Schulnote, die man nicht will","Lieblingsessen von Kindern","Gericht beim Italiener","Gericht beim Griechen","Gericht beim Asiaten","Döner-Zutat","Salatzutat","Suppe","Backzutat","Gemüse, das man nicht mag","Gericht zu Weihnachten","Grillgut","Snack im Kino","Chipssorte","Energy-Drink","Limonade","Spirituose","Frühstücksflocken","Aufstrich","Marmeladensorte","Fisch","Reptil","Nagetier","Affenart","Großkatze","Hunderasse","Katzenrasse","Pferd oder Reitsport-Begriff","Märchen","Superheld","Bösewicht","Zeichentrickfigur","Pixar-Film","Harry-Potter-Figur","Star-Wars-Figur","Netflix-Serie","Sitcom","Krimiserie","Realityshow","Quizshow","Podcast","Hörbuch oder Buch","Zeitschrift","Zeitung","Spielekonsole","Handyspiel","Shooter-Spiel","Mobile-App","Webseite, die jeder kennt","Messenger","Browser","Betriebssystem","Computerteil","Kabel oder Adapter","Akkugerät","Kopfhörer-Marke","Schmuckstück","Schuhart","Hutart","Jacke","Stoff","Muster auf Kleidung","Frisur","Make-up-Produkt","Parfüm","Zahnpasta oder Pflegeprodukt","Haushaltsgerät","Küchengerät","Besteckteil","Geschirr","Glas oder Tasse","Dekoration","Lichtquelle","Fahrzeug mit zwei Rädern","Flugzeugtyp","Schiff oder Boot","Lkw-Marke","Motorradmarke","Luxusmarke","Teure Sache","Billige Sache","Etwas Rundes","Etwas Rotes","Etwas Gelbes","Etwas Grünes","Etwas Blaues","Etwas Kaltes","Etwas Heißes","Etwas Weiches","Etwas Scharfes","Etwas Süßes","Etwas Saures","Etwas Lautes","Etwas Großes","Etwas Kleines","Etwas Peinliches","Etwas Ekliges","Etwas Gefährliches","Etwas, das man verliert","Etwas, das man teilt","Etwas, das man sammelt","Etwas, das man nie vergisst","Etwas auf dem Schulhof","Etwas im Supermarkt","Etwas im Krankenhaus","Etwas im Freizeitpark","Etwas im Wald","Etwas im Wasser","Etwas im Weltraum","Etwas im Fitnessstudio","Etwas im Restaurant","Etwas im Hotel","Etwas am Flughafen","Etwas im Zug","Etwas auf der Hochzeit","Etwas bei einer Geburtstagsparty","Etwas zu Silvester","Etwas zu Ostern","Etwas zu Halloween","Etwas im Winter","Etwas im Herbst","Etwas im Frühling","Beruf, den man nicht haben will","Traumberuf","Studienfach","Sportgerät","Sportverein-Farbe","Fußballspieler","Fußballposition","Basketballspieler","Tennisspieler","Formel-1-Team","Olympische Stadt","Instrument im Orchester","Weihnachtslied","Kinderlied","Partyhit","Disco-Getränk","Ausrede","Lüge","Kompliment","Beleidigung unter Freunden","Spitzname","Nachname","Name für ein Haustier","Name für ein Baby","Name für einen Hund","Buchstabe","Zahl zwischen 10 und 100","Jahr","Uhrzeit","Stadt in Europa","Stadt in den USA","Insel","Berg","See","Meer","Wüste","Sehenswürdigkeit","Museum","Zoo-Tier, das man zuerst besucht","Gewitter-Geräusch","Tiergeräusch","Geräusch im Haus","Geruch","Geschmack","Emoji","Hashtag","Meme","Internetphänomen","Videogenre","Streaming-Plattform","Gaming-Zubehör","Rolle in einem Spiel","Waffe im Videospiel","Item in Minecraft","Fortnite-Begriff","GTA-Fahrzeug","FIFA-Spieler","Spiel für draußen","Spiel für Kinder","Partyspiel","Trinkspiel ohne Alkohol","Mutprobe","Streich","Strafe","Belohnung","Hausaufgabe","Lernmethode","Prüfungsfach","Schulabschluss","Lehrerart"];
+const $=s=>document.querySelector(s);
+const app=$("#app");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>s.toLowerCase().trim().replace(/ß/g,"ss").replace(/[^a-z0-9äöüé ]/g,"").replace(/\s+/g," ");
+function rng(seed){let h=2166136261;for(const c of seed){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return()=>{h+=0x6D2B79F5;let t=Math.imul(h^h>>>15,1|h);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}}
+function order(code){const r=rng(code),a=CATS.map((_,i)=>i);for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+let name=""; try{name=localStorage.getItem("name")||""}catch(e){}
+let room=null,code="",ord=[],err="",myAns="",G0={s:0,i:0,b:0,m:0,v:0,r:null};
+const peerId=()=>room&&room.peers().filter(p=>p.kind==="viewer"&&p.presence&&p.presence.n);
+function game(){let g=G0;(peerId()||[]).forEach(p=>{const q=p.presence.g;if(q&&q.s>g.s)g=q});return g}
+
+function lobby(){
+  const h=location.hash.replace("#","").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+  app.innerHTML=`<h1>🧠 Assoziationsspiel</h1><p class="sub">Denkt dasselbe – spielt zu zweit oder dritt online.</p>
+  <div class="card"><label>Dein Name</label><input id="nm" maxlength="14" value="${esc(name)}" placeholder="z. B. Basti">
+  <div class="gap"></div><button id="new">Neue Lobby erstellen</button></div>
+  <div class="card"><label>Oder Lobbycode eingeben</label><input id="cd" maxlength="6" value="${h}" placeholder="CODE" style="text-transform:uppercase;letter-spacing:3px;text-align:center">
+  <div class="gap"></div><button class="sec" id="join">Beitreten</button></div><div class="err" id="er">${esc(err)}</div>`;
+  const go=c=>{name=$("#nm").value.trim();if(!name){$("#er").textContent="Bitte gib einen Namen ein.";return}
+    try{localStorage.setItem("name",name)}catch(e){}start(c)};
+  $("#new").onclick=()=>go(Array.from({length:4},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ"[Math.floor(Math.random()*24)]).join(""));
+  $("#join").onclick=()=>{const c=$("#cd").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(c.length<3){$("#er").textContent="Code zu kurz.";return}go(c)};
+}
+async function start(c){
+  err="";app.innerHTML='<p class="sub">Verbinde …</p>';
+  let base=null;try{base=await claude.use("room")}catch(e){}
+  if(!base){err="Verbindung nicht möglich. Du musst die Seite über den geteilten Link geöffnet haben und angemeldet sein.";return lobby()}
+  try{room=await base.join("assoc-"+c.toLowerCase())}catch(e){err="Beitritt fehlgeschlagen"+(e&&e.code?" ("+e.code+")":"")+".";return lobby()}
+  code=c;ord=order(c);myAns="";
+  room.onPeers(()=>render());
+  push();render();
+  setTimeout(()=>{push();render()},1500);
+}
+function push(extra){room.presence(Object.assign({n:name,g:game()},extra||{}))}
+function setG(g){G0=g;push();render()}
+function pl(){return peerId()||[]}
+function render(){
+  if(!room)return;const g=game(),ps=pl(),streak=g.r==="right"?g.b+1:g.r==="wrong"?0:g.b,best=Math.max(g.m,streak);
+  const cat=CATS[ord[g.i%ord.length]];
+  const ans=p=>p.presence.ai===g.i&&p.presence.a?p.presence.a:null;
+  const done=ps.filter(p=>ans(p)).length,mine=ps.find(p=>p.isMe&&p.sameTab);
+  const all=ps.length>1&&done===ps.length;
+  if(ps.length<2&&g.s===0){
+    app.innerHTML=`<h1>🎉 Lobby erstellt</h1><p class="sub">Gib diesen Code an deine Mitspieler weiter:</p>
+    <div class="card" style="text-align:center"><div class="cat">Lobbycode</div><div class="word" style="font-size:56px;letter-spacing:8px">${esc(code)}</div>
+    <div class="gap"></div><button id="cc">Code kopieren</button><div class="gap"></div><button class="sec" id="cl">Link kopieren</button></div>
+    <div class="card"><label>In der Lobby (${ps.length})</label>${ps.map(p=>`<div class="pl"><span>${esc(p.presence.n)}${p.isMe?" (du)":""}</span><span class="st">bereit</span></div>`).join("")}
+    <div class="hint">Warte auf Mitspieler … das Spiel startet automatisch, sobald jemand beitritt.</div></div>
+    <button class="sec" id="sg">Trotzdem allein starten</button><div class="gap"></div><button class="sec" id="lv">Lobby verlassen</button>`;
+    const cp=t=>{try{navigator.clipboard.writeText(t)}catch(e){prompt("Kopieren:",t)}};
+    $("#cc").onclick=()=>{cp(code);$("#cc").textContent="Kopiert ✓"};
+    $("#cl").onclick=()=>{cp(location.href.split("#")[0]+"#"+code);$("#cl").textContent="Kopiert ✓"};
+    $("#sg").onclick=()=>setG({s:1,i:0,b:0,m:0,v:0,r:null});
+    $("#lv").onclick=()=>{try{room.leave()}catch(e){}room=null;G0={s:0,i:0,b:0,m:0,v:0,r:null};lobby()};
+    return}
+  const hadFocus=document.activeElement&&document.activeElement.id==="in";
+  const typing=hadFocus?$("#in").value:myAns;
+  app.innerHTML=`<div class="top"><span>Lobby <span class="code" id="cp" title="Link kopieren">${esc(code)}</span> 📋</span><span>${ps.length} Spieler</span></div>
+  <div class="card streak">Streak<b>🔥 ${streak}</b>Rekord: ${best} · Runde ${g.i+1}</div>
+  <div class="card"><div class="cat">Kategorie</div><div class="word">${esc(cat)}</div>
+  <div class="hint">Schreibt, was euch als Erstes einfällt – ohne euch abzusprechen!</div>
+  ${g.v?"":`<div class="gap"></div><div class="row"><input id="in" maxlength="30" placeholder="Deine Antwort" value="${esc(typing)}"><button id="send" style="flex:0 0 auto;width:auto">OK</button></div>`}
+  ${ps.map(p=>{const a=ans(p);return `<div class="pl"><span>${esc(p.presence.n)}${p.isMe?" (du)":""}</span><span class="${g.v?"":"st"}">${g.v?(a?esc(a):"–"):(a?"✓ bereit":"denkt nach …")}</span></div>`}).join("")}
+  ${g.v?`<div class="res ${g.r==="right"?"right":"wrong"}">${g.r==="right"?"✅ Richtig!":"❌ Falsch"}</div>
+  <div class="gap"></div><div class="row"><button class="ok" id="rt" ${g.r==="right"?"disabled":""}>Doch richtig</button><button class="bad" id="wr" ${g.r==="wrong"?"disabled":""}>Doch falsch</button></div>
+  <div class="gap"></div><button id="nx">Weiter ➜</button>`
+  :`<div class="gap"></div><button id="rv" ${done<1?"disabled":""}>Reveal 👀 (${done}/${ps.length})</button>`}</div>
+  ${ps.length<2?'<div class="hint">Teile den Link mit deinen Mitspielern – sie geben den Code ein oder öffnen ihn direkt.</div>':""}
+  <button class="sec" id="lv">Lobby verlassen</button>`;
+  $("#cp").onclick=()=>{const u=location.href.split("#")[0]+"#"+code;try{navigator.clipboard.writeText(u);$("#cp").textContent="kopiert!"}catch(e){prompt("Link:",u)}};
+  $("#lv").onclick=()=>{try{room.leave()}catch(e){}room=null;G0={s:0,i:0,b:0,m:0,v:0,r:null};lobby()};
+  if($("#in")){const sub=()=>{myAns=$("#in").value.trim();push({a:myAns,ai:g.i});};
+    $("#send").onclick=sub;$("#in").onkeydown=e=>{if(e.key==="Enter")sub()};
+    if(hadFocus){const i=$("#in");i.focus();i.setSelectionRange(i.value.length,i.value.length)}}
+  if($("#rv"))$("#rv").onclick=()=>{
+    const as=ps.map(p=>ans(p)).filter(Boolean).map(norm);
+    const ok=all&&as.every(a=>a===as[0]);
+    setG({s:g.s+1,i:g.i,b:g.b,m:g.m,v:1,r:ok?"right":"wrong"})};
+  if($("#rt"))$("#rt").onclick=()=>setG({...g,s:g.s+1,r:"right"});
+  if($("#wr"))$("#wr").onclick=()=>setG({...g,s:g.s+1,r:"wrong"});
+  if($("#nx"))$("#nx").onclick=()=>{myAns="";setG({s:g.s+1,i:g.i+1,b:streak,m:best,v:0,r:null})};
+}
+lobby();
+</script>
+</body>
+</html>
